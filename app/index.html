@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>title</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+    <link rel="stylesheet" href="assets/styles.css" type="text/css">
+  </head>
+  <body>
+    <h1>Analysis of Diabetes Twitter Data</h1>
+    <section>
+      <h2>Users</h2>
+      <ul>
+        <li>
+          Maria
+        </li>
+        <li>
+          Lasse
+        </li>
+      </ul>
+    </section>
+    <section>
+      <div id="app">
+      <h2>Selected Tweets</h2>
+      <ul class="collection">
+        <li class="collection-item avatar" v-for="tweet in tweets">
+          <i class="material-icons circle green">insert_chart</i>
+          <span class="title">{{tweet.name}}</span>
+          <p>{{tweet.time}} - {{tweet.keywords}}<br />
+          {{tweet.text}}</p>
+        </li>
+      </ul>
+      </div>
+    </section>
+  </body>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+  <script src="https://unpkg.com/vue"></script>
+  <script src="https://www.gstatic.com/firebasejs/3.4.0/firebase.js" ></script>
+  <script src="https://unpkg.com/vuefire/dist/vuefire.js"></script>
+  <script type="text/javascript">
+
+  // Setup Firebase
+  var config = {
+    apiKey: "AIzaSyAAKwkmfHfHMDBUq4pIZpdEBR3kAfF5HUc",
+    authDomain: "automatic-disco.firebaseapp.com",
+    databaseURL: "https://automatic-disco.firebaseio.com",
+    // storageBucket: "automatic-disco.appspot.com",
+    // serviceAccount: "data/My Project 96139-d056a3c80700.json",
+    // projectId: "automatic-disco",
+    // messagingSenderId: "473031467657"
+  }
+  firebase.initializeApp(config)
+
+  var auth = firebase.auth();
+  var user = auth.signInWithEmailAndPassword("stefanie.knoth@gmail.com", "passForThisApp123");
+  var db = firebase.database();
+
+  // create Vue app
+  var app = new Vue({
+    // element to mount to
+    el: '#app',
+    // firebase binding
+    // https://github.com/vuejs/vuefire
+    firebase: {
+      tweets: db.ref('tweets')
+    },
+    // methods
+    methods: {}
+  })
+  </script>
+</html>

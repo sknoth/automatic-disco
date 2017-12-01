@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "clever-hangar-187714",
+  "private_key_id": "d056a3c80700f5ac303d65073c7ac7639f606eff",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDBctMW2J/9jU9u\nvt+iqNbPVxFUNs6hfkEEqus9t0sLBswgHY+8LtJZ5SU7NwlG///BWUNpAevkcsm8\nnHIOZwFQ+D4RnxWJFp9y4RsDqBr/efb+GvJ6mdOHMubX1RM8ZqLLNb1k6qz/oI9P\n1es/VwbcWwmx/RUQSP0A4G2dJRL7OpQgRT8m/+Gwn8gyC8TSx/eMMIGKwRT3JfMi\nlHStrzuzkaxuJ++aUsQVaMrifayh6bCjWLss+e6h8gcB+ylKFOBsU/wpFzLCoWef\nbQ0GiLlOcBcDSx6dkFGhxNfKKyrMZZ9AAvl4rcZ3u3sb9O0JpS3woKzLxXoBsc/c\nC5etcezXAgMBAAECggEAHUQcs6tLLRtYpeWs71lWwjXRvSlbgmrCNbgRRcbPTMLs\nVSbTwixdONS7bhAfUFqrcS9qzN30YkfhcFjvbRwKmBrY8maHELSCTpQdYk9njONW\nns5/L6rKVH0QF8gNvx4R8+dUmLS46SV7zkq2lTW6fSeCudGS2GIKcLxYqPpdEEe4\nSkTjibKSVnah3t3qRzW0dn9t6wmMa/9Rgy7PBZJXUOmEpGeFEsexj2GzdUtLkehZ\n6FdIliunJdMjodTGVEouUC46ul3Fr/eTeUrCrFjPd/BzeZCeF5s9QgoH3bCKgn1k\nlzRotZdcfSUhwBTkzZRPKDvXgaolSswys2B9cTIxZQKBgQDfvrUNNp8F3MhVxJv8\n3zQNn0W42NcRn9hgrTiLOCXU7zxtCJJ1arRs5W+uuSFzzVHbvp3zg2bk+wRkXp3v\n7YISg4t8QExp9YWZE8XAwn9cyFCsQg6XIEnmnvsgmXuCXB9iW96TjEQ1XH7JCXs9\nbSMs4v1lL0Y9qD/shQpONZ2BDQKBgQDdVgexzjUKmoj8DmHFIBH5l8h4s5SSXoJZ\nBIoPSuytc3KlgOxIzDavuM2e2nlR+mQi50FJSKYdXKDemwomEXRZ9cPkpcN/WsjC\nNhj3dAcPQpEpAiL9Q+3a3lBu8L7ejU6bERYF4c6jAg4mOeCIrysdMiN5P/ngh+8R\nOEqora/EcwKBgQDdu+1Jbvwhny+acAH2lGzNoy5BhgN9n9+bz47dyYMUhxJnK7uZ\nSWoNEUOg8C9KyAt7rmhyT6LFAk7T+UCj6cih+GNfe4k+6ObBUWsFILt/g7UPQVec\nRY93Uc6l+/T+t7USkOD/cF6YU1YCfbb4pRPbBAkDIdqGeBsBlscjwtaYcQKBgQC4\ngOmDH5j5kN6V9ssrjtNNE2jKrTAxX1UbLXyEyPlIkY9FRZYyDQGdM9k8DXTKkIZ+\nzfWPSF8o5Lk5N1abaztpbkRwynmQJTZrJrtjM7Za0yu8WoqeQsz5AQ9dm5QQYwze\nmLyaBKTDH4h59w8kAZlYCh6mCV2b/NSdryYVPEvj3wKBgH/3gs8XwbOcoarHs4YR\netimIS/7SiHEnG7U8Y7NUNd+03Q6DVwj7t9+moLex3QLwK1iCgktyO4Rl1Nq2fxA\nVU/EZqhPZ8Lcxwr9/13szT17fIQRZ5tuMs+O7L5w4iZ2OeEvOdx0IDhDGQxA2Yev\nXkc40L/Ca78x2JxaWAXDjnMn\n-----END PRIVATE KEY-----\n",
+  "client_email": "automatic-disco@clever-hangar-187714.iam.gserviceaccount.com",
+  "client_id": "107605390027050198088",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/automatic-disco%40clever-hangar-187714.iam.gserviceaccount.com"
+}
