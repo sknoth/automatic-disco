@@ -24,16 +24,13 @@ sheet = workbook.sheet_by_index(0)
 
 afinn = Afinn(language='sv')
 
-for row in range(5, sheet.nrows):
+for row in range(5, sheet.nrows-68):
+    
+    score = afinn.score(sheet.row(row)[5].value) 
+    
     db.child("tweets").child(row).set({
-            "tweetID": row,
-            "time": sheet.row(row)[0].value,
-            "name": sheet.row(row)[1].value,
-            "user": sheet.row(row)[2].value,
-            "lang": sheet.row(row)[3].value,
-            "keywords": sheet.row(row)[4].value,
-            "text": sheet.row(row)[5].value,
             "sentinentID": afinn.score(sheet.row(row)[5].value)
             }, user['idToken'])
 
-print("tweet processing done")
+print("sentinent parsing done")
+

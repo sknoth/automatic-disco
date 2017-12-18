@@ -8,31 +8,42 @@
     <link rel="stylesheet" href="assets/styles.css" type="text/css">
   </head>
   <body>
-    <h1>Analysis of Diabetes Twitter Data</h1>
-    <section>
-      <h2>Users</h2>
-      <ul>
-        <li>
-          Maria
-        </li>
-        <li>
-          Lasse
-        </li>
-      </ul>
-    </section>
-    <section>
-      <div id="app">
-      <h2>Selected Tweets</h2>
-      <ul class="collection">
-        <li class="collection-item avatar" v-for="tweet in tweets">
-          <i class="material-icons circle green">insert_chart</i>
-          <span class="title">{{tweet.name}}</span>
-          <p>{{tweet.time}} - {{tweet.keywords}}<br />
-          {{tweet.text}}</p>
-        </li>
-      </ul>
-      </div>
-    </section>
+    <div id="app">
+      <h1>Analysis of Diabetes Twitter Data</h1>
+      <section>
+        <h2>Users</h2>
+        <ul>
+          <li>
+            Maria
+          </li>
+          <li>
+            Lasse
+          </li>
+        </ul>
+      </section>
+      <section>
+        <h2>Sentinents</h2>
+        <ul class="collection">
+          <li class="collection-item" v-for="s in sentinents"  v-on:click="getSentinentTweets(s)">
+            <span class="title">{{s.value}}</span>
+          </li>
+        </ul>
+      </section>
+      <section>
+        <div>
+        <h2>Selected Tweets</h2>
+        <ul class="collection">
+          <li class="collection-item avatar" v-for="tweet in tweets">
+            <!-- <i class="material-icons circle green">insert_chart</i> -->
+            <span class="title">{{tweet.name}}</span>
+            <p>{{tweet.time}} - {{tweet.keywords}}<br />
+            {{tweet.text}}</p>
+          </li>
+        </ul>
+        </div>
+      </section>
+
+    </div>
   </body>
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
@@ -64,10 +75,20 @@
     // firebase binding
     // https://github.com/vuejs/vuefire
     firebase: {
-      tweets: db.ref('tweets')
+      tweets: db.ref('tweets'),
+      sentinents: db.ref('sentinents')
     },
-    // methods
-    methods: {}
+    // data: {
+    //   tweets: []
+    // },
+    methods: {
+      getTweets: function(key) {
+        app.$bindAsArray('tweets', db.ref('tweets').orderByChild('sentinentID').equalTo(key));
+      },
+      getSentinentTweets: function (s) {
+        app.getTweets(s.value);
+      }
+    }
   })
   </script>
 </html>
