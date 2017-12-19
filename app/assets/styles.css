@@ -1,2 +1,7 @@
 h1 { font-size: 2.2rem; }
 h2 { font-size: 1.8rem; }
+
+#app {
+  display: flex;
+  flex-direction: row;
+}

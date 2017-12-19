@@ -8,9 +8,9 @@
     <link rel="stylesheet" href="assets/styles.css" type="text/css">
   </head>
   <body>
+    <h1>Analysis of Diabetes Twitter Data</h1>
     <div id="app">
-      <h1>Analysis of Diabetes Twitter Data</h1>
-      <section>
+      <!-- <section>
         <h2>Users</h2>
         <ul>
           <li>
@@ -20,12 +20,13 @@
             Lasse
           </li>
         </ul>
-      </section>
+      </section> -->
       <section>
         <h2>Sentinents</h2>
+        <svg id="sentinentChart"></svg>
         <ul class="collection">
           <li class="collection-item" v-for="s in sentinents"  v-on:click="getSentinentTweets(s)">
-            <span class="title">{{s.value}}</span>
+            <span class="title">{{s}}</span>
           </li>
         </ul>
       </section>
@@ -45,7 +46,7 @@
 
     </div>
   </body>
-  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
   <script src="https://unpkg.com/vue"></script>
   <script src="https://www.gstatic.com/firebasejs/3.4.0/firebase.js" ></script>
@@ -75,19 +76,125 @@
     // firebase binding
     // https://github.com/vuejs/vuefire
     firebase: {
-      tweets: db.ref('tweets'),
-      sentinents: db.ref('sentinents')
+      tweets: db.ref('tweets')
     },
-    // data: {
-    //   tweets: []
-    // },
+    data: {
+      sentinentCount: null,
+      sentinents: null
+    },
+    created: function () {
+      fetch('sentinents.json').then((response) => {
+        return response.json().then((json) => {
+          console.log("JSON", json)
+          app.sentinents = json
+          // this.renderChart(app.sentinents);
+        })
+      });
+
+      fetch('sentinentCount.json').then((response) => {
+        return response.json().then((json) => {
+          console.log("JSON", json)
+          app.sentinentCount = json
+        })
+      });
+
+    },
     methods: {
       getTweets: function(key) {
         app.$bindAsArray('tweets', db.ref('tweets').orderByChild('sentinentID').equalTo(key));
       },
       getSentinentTweets: function (s) {
-        app.getTweets(s.value);
-      }
+        app.getTweets(s.name);
+      },
+      renderChart: function() {
+
+        // set the dimensions of the canvas
+        var margin = {top: 20, right: 20, bottom: 70, left: 40},
+            width = 600 - margin.left - margin.right,
+            height = 300 - margin.top - margin.bottom;
+
+
+        // set the ranges
+        var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
+
+        var y = d3.scale.linear().range([height, 0]);
+
+        // define the axis
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom")
+
+
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left")
+            .ticks(10);
+
+
+        // add the SVG element
+        var svg = d3.select("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+            .attr("transform",
+                  "translate(" + margin.left + "," + margin.top + ")");
+
+
+        // load the data
+        d3.json("sentinents.json", function(error, data) {
+
+            data.forEach(function(d) {
+                d.name = d.name;
+                d.value = +d.value;
+            });
+
+          // scale the range of the data
+          x.domain(data.map(function(d) { return d.name; }));
+          y.domain([0, d3.max(data, function(d) { return d.value; })]);
+
+          // add axis
+          svg.append("g")
+              .attr("class", "x axis")
+              .attr("transform", "translate(0," + height + ")")
+              .call(xAxis)
+            .selectAll("text")
+              .style("text-anchor", "end")
+              .attr("dx", "-.8em")
+              .attr("dy", "-.55em")
+              .attr("transform", "rotate(-90)" );
+
+          svg.append("g")
+              .attr("class", "y axis")
+              .call(yAxis)
+            .append("text")
+              .attr("transform", "rotate(-90)")
+              .attr("y", 5)
+              .attr("dy", ".71em")
+              .style("text-anchor", "end")
+              .text("Frequency");
+
+
+          // Add bar chart
+          svg.selectAll("bar")
+              .data(data)
+            .enter().append("rect")
+              .attr("class", "bar")
+              .attr("x", function(d) { return x(d.name); })
+              .attr("width", x.rangeBand())
+              .attr("y", function(d) { return y(d.value); })
+              .attr("height", function(d) { return height - y(d.value); });
+
+            });
+
+        }
+      },
+      mounted: function() {
+         this.renderChart();
+      },
+      watch: {
+        // data: function(val) {
+        //   this.renderChart(val);
+        // }
     }
   })
   </script>

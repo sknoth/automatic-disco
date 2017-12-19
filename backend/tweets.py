@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import json
 import pyrebase 
 import xlrd
 from afinn import Afinn
@@ -24,7 +24,17 @@ sheet = workbook.sheet_by_index(0)
 
 afinn = Afinn(language='sv')
 
-for row in range(5, sheet.nrows):
+sentinentCount = {}
+
+for row in range(5, sheet.nrows-68):
+    
+    score = afinn.score(sheet.row(row)[5].value)
+        
+    if not sentinentCount.get(score):
+        sentinentCount[score] = []
+    
+    sentinentCount[score].append(row)  
+
     db.child("tweets").child(row).set({
             "tweetID": row,
             "time": sheet.row(row)[0].value,
@@ -33,7 +43,18 @@ for row in range(5, sheet.nrows):
             "lang": sheet.row(row)[3].value,
             "keywords": sheet.row(row)[4].value,
             "text": sheet.row(row)[5].value,
-            "sentinentID": afinn.score(sheet.row(row)[5].value)
+            "sentinentID": score
             }, user['idToken'])
 
+
+sentinents = []
+for k,v in sentinentCount.items():
+    sentinents.append({'name':k, 'value':len(v)});
+
+with open('../data/sentinentCount.json', 'w') as fp:
+   json.dump(sentinentCount, fp)
+
+with open('../data/sentinents.json', 'w') as fp:
+   json.dump(sentinents, fp)
+    
 print("tweet processing done")
