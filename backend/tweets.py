@@ -48,11 +48,9 @@ for row in range(5, sheet.nrows-68):
 
 
 sentinents = []
-for k,v in sentinentCount.items():
-    sentinents.append({'name':k, 'value':len(v)});
 
-with open('../data/sentinentCount.json', 'w') as fp:
-   json.dump(sentinentCount, fp)
+for k,v in sorted(sentinentCount.items()):
+    sentinents.append({'name':k, 'value':len(v)});
 
 with open('../data/sentinents.json', 'w') as fp:
    json.dump(sentinents, fp)

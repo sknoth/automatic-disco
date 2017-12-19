@@ -5,3 +5,34 @@ h2 { font-size: 1.8rem; }
   display: flex;
   flex-direction: row;
 }
+
+.bar{
+  fill: steelblue;
+}
+
+.bar:hover{
+  fill: brown;
+}
+
+.axis {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x .tick {
+  cursor: pointer;
+}
+
+select { display: block; }
+.sentinents h2 { margin-left: 20px; }
+.sentinents .select-wrapper {
+  margin: 0 18px;
+  width: 50%;
+  float: right;
+}
