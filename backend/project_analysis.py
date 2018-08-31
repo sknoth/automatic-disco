@@ -4,7 +4,7 @@ Created on Wed Aug 29 08:07:20 2018
 
 @author: Imran Shokat SE
 """
-#I have created a raw code just to get the results for specif task. May be you could not understand all steps of code.
+#I have created a raw code just to get the results for specif task.
 import xlrd
 import re
 import string
@@ -21,31 +21,30 @@ tweet_list=[]
 for row in range(5, sheet.nrows-68):
     tweet_list.append(sheet.row(row)[5].value)
 
-#replace the links found
-def strip_links(text):
-    link_regex = re.compile('((https?):((//)|(\\\\))+([\w\d:#@%/;$()~_?\+-=\\\.&](#!)?)*)', re.DOTALL)
-    links = re.findall(link_regex, text)
+##Remove the URL, Links from the text of tweets
+def remove_links(tweet):
+    myregex = re.compile('((https?):((//)|(\\\\))+([\w\d:#@%/;$()~_?\+-=\\\.&](#!)?)*)', re.DOTALL)
+    links = re.findall(myregex, tweet)
     for link in links:
-        text = text.replace(link[0], '')
-    return text
-
-#replace @ and #
-def strip_all_entities(text):
-    entity_prefixes = ['RT','@','#',"\\U"]
-    for separator in  string.punctuation:
-        if separator not in entity_prefixes :
-            text = text.replace(separator,' ')
-    words = []
-    for word in text.split():
+        tweet = tweet.replace(link[0], '')
+    return tweet
+#Remove @ and # from the text of tweets
+def remove_punctuations(tweet):
+    myprefixes = ['RT','@','#',"\\U"]
+    for value in  string.punctuation:
+        if value not in myprefixes :
+            tweet = tweet.replace(value,' ')
+    finalText = []
+    for word in tweet.split():
         word = word.strip()
         if word:
-            if word[0] not in entity_prefixes:
-                words.append(word)
-    return ' '.join(words)
+            if word[0] not in myprefixes:
+                finalText.append(word)
+    return ' '.join(finalText)
 
 cleaned_list=[]
 for tweet in tweet_list:
-    cleaned_list.append(strip_all_entities(strip_links(tweet)))
+    cleaned_list.append(remove_punctuations(remove_links(tweet)))
 def remove_stopwords(texts):
     return [[word for word in simple_preprocess(str(doc)) if word not in stop_words] for doc in texts]
 data_words_nostops = remove_stopwords(cleaned_list)
@@ -120,8 +119,8 @@ createFile= open("F:/Software Technology/Semester 3/Adaptive and Semantic Web/Fi
 createFile.write(str(linkedTweets))
 createFile.close()
 #572 links total
-
-
+#check duplicate links
+linksdupli=[item for item, count in collections.Counter(linkedTweets).items() if count ==2] #count 3, 4 upto so on
 
 
 
