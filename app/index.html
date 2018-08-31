@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>title</title>
+    <title>Analysis of Diabetes Twitter Data</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
     <link rel="stylesheet" href="assets/styles.css" type="text/css">
@@ -10,51 +10,109 @@
   <body>
     <h1>Analysis of Diabetes Twitter Data</h1>
     <div id="app">
-      <!-- <section>
-        <h2>Users</h2>
-        <ul>
-          <li>
-            Maria
-          </li>
-          <li>
-            Lasse
+      <section clas="users">
+        <div>
+        <h2>Users <small>(Retweets)</small></h2>
+        <ul class="collection user-container">
+          <li class="collection-item" v-for="u in userArr">
+            <span class="jq-user title"
+              @click="showTweetsByUser(u.name)">{{u.name}} ({{u.sentinentIDs.length}})</span>
           </li>
         </ul>
-      </section> -->
-      <section class="sentinents">
-        <h2>Sentinents</h2>
-        <svg id="sentinentChart"></svg>
-        <div class="select-wrapper col s6">
-          <label>Sentinent Score (Number of Tweets):</label>
-          <select v-model="selectedSentinent" @change="changeSentinentTweets($event.target.value)">
-            <option v-for="s in sentinents" :value="s.name">
-              {{s.name}} ({{s.value}})</option>
-          </select>
+        <ul class="collection user-container" style="display:none;">
+          <li class="collection-item" v-for="u in users">
+            <span class="jq-user title" :myid="u.sentinentID" :keyword="u.keywords"
+              @click="showTweetsByUser(u.user)">{{u.user}}</span>
+          </li>
+        </ul>
         </div>
       </section>
-      <section>
-        <div>
-        <h2>Selected Tweets</h2>
-        <ul class="collection">
-          <li class="collection-item avatar" v-for="tweet in tweets">
-            <!-- <i class="material-icons circle green">insert_chart</i> -->
-            <span class="title">{{tweet.name}}</span>
-            <p>{{tweet.time}} - {{tweet.keywords}}<br />
-            {{tweet.text}}</p>
-          </li>
-        </ul>
+      <div class="main">
+        <section class="sentinents">
+        <h2>Visualization</h2>
+        <div class="col s12">
+          <ul class="tabs">
+            <li class="tab col s6"><a class="active" href="#Tsentinents">Sentinents (Bar Chart)</a></li>
+            <li class="tab col s6"><a href="#Tkeywords">Keywords (Theme River)</a></li>
+          </ul>
+        </div>
+        <div id="Tsentinents" class="col s12">
+            <svg id="sentinentChart"></svg>
+            <div class="select-wrapper col s6 clearfix">
+              <label>Sentinent Score (Number of Tweets):</label>
+              <select v-model="selectedSentinent" @change="changeSentinentTweets($event.target.value)">
+                <option v-for="s in sentinents" :value="s.name">
+                  {{s.name}} ({{s.value}})</option>
+              </select>
+            </div>
+        </div>
+        <div id="Tkeywords" class="col s12">
+          <div class="chart-theme-river themeriver"></div>
         </div>
       </section>
 
+
+      <section class="tweets clearfix">
+        <div>
+        <h2>Current Selection of Tweets</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>User Name</th>
+              <th>Keywords</th>
+              <th>Sentinent</th>
+              <th>Tweet Text</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="tweet in tweets">
+              <td>{{tweet.time}}</td>
+              <td>{{tweet.name}}</td>
+              <td>{{tweet.keywords}}</td>
+              <td class="sentinent-id">{{tweet.sentinentID}}</td>
+              <td>{{tweet.text}}</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </section>
+      </div>
+      <section class="keywords">
+        <a class="waves-effect waves-light btn" @click="showAllTweets()">Remove Filters</a>
+        <h2>Keywords</h2>
+  <div class="row">
+    <div class="col s12">
+      <ul class="tabs">
+        <li class="tab col s6"><a class="active" href="#test1">Word Cloud</a></li>
+        <li class="tab col s6"><a href="#test2">List</a></li>
+      </ul>
+    </div>
+    <div id="test1" class="col s12">
+          <div id="wordCloud"></div>
+    </div>
+    <div id="test2" class="col s12">
+          <ul class="collection keyword-container">
+            <li class="collection-item" v-for="k in cloudWords">
+              <span class="jq-user title" :wordid="k.word"
+                @click="showTweetsByWord(k.word)">{{k.word}} ({{k.weight}})</span>
+            </li>
+          </ul>
+    </div>
+  </div>
+      </section>
     </div>
   </body>
   <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
-  <script src="https://unpkg.com/vue"></script>
   <script src="https://www.gstatic.com/firebasejs/3.4.0/firebase.js" ></script>
+  <script src="https://unpkg.com/vue"></script>
   <script src="https://unpkg.com/vuefire/dist/vuefire.js"></script>
+  <script src="jqwcloud.js"></script>
   <script type="text/javascript">
+
+
 
   // Setup Firebase
   var config = {
@@ -79,53 +137,208 @@
     // firebase binding
     // https://github.com/vuejs/vuefire
     firebase: {
-      tweets: db.ref('tweets')
+      tweets: db.ref('tweets'),
+      sentinentsDB: db.ref('sentinents'),
+      users: {
+        source: db.ref('tweets'),
+        // this is called once the data has been retrieved from firebase
+        readyCallback: function (a,b) {
+
+          window.setTimeout(function() {
+
+            $('.jq-user').each(function() {
+
+              let name = $(this).html();
+
+              let foundName = $.grep( app.userArr, function( obj, i ) {
+                return obj.name === name;
+              });
+
+              var sName = $(this).attr('myid');
+              var keyword = $(this).attr('keyword');
+
+              if (foundName.length > 0) {
+
+                let foundSentinent = $.grep( foundName[0].sentinentIDs, function( obj, i ) {
+                  return obj.name === sName;
+                });
+
+                if (foundSentinent.length > 0) {
+                  foundSentinent[0].value = foundSentinent[0].value + 1;
+                } else {
+                  foundName[0].sentinentIDs.push({name:sName, value:1});
+                }
+
+              } else {
+
+                app.userArr.push({
+                  name: $(this).html(),
+                  sentinentIDs: [{name:sName, value:1}],
+                  keyword: keyword
+                });
+              }
+            });
+            function compare(a,b) {
+             if (a.sentinentIDs.length > b.sentinentIDs.length)
+               return -1;
+             if (a.sentinentIDs.length < b.sentinentIDs.length)
+               return 1;
+             return 0;
+           }
+
+           app.userArr.sort(compare);
+            app.userArrOrig = app.userArr;
+
+          },1000);
+
+        }
+      }
     },
     data: {
       selectedSentinent: null,
-      sentinents: null
+      sentinents: null,
+      origSentinents: null,
+      userArr: [],
+      userArrOrig: [],
+      cloudWords: [],
+      myKeywords: []
     },
     created: function () {
-      fetch('../data/sentinents.json').then((response) => {
+
+      fetch('data/sentinents.json').then((response) => {
         return response.json().then((json) => {
-          console.log("JSON", json)
           app.sentinents = json
+          this.init();
         })
       });
 
-
     },
     methods: {
+
+      init: function() {
+        this.renderChart();
+        this.createWordCloud();
+        this.createThemeRiver();
+      },
+
+      updateUserArr: function(keyword) {
+
+            let foundKeyword = $.grep( app.userArrOrig, function( obj, i ) {
+              return obj.keyword === keyword;
+            });
+    app.userArr = foundKeyword;
+
+      },
+
+      createWordCloud: function() {
+
+        $.get('data/words-for-word-Cloud.txt', function(data) {
+
+           var wordArr = data.split(' ');
+
+           for (var i = 0; i < wordArr.length; i++) {
+
+             var found = app.cloudWords.find(function(el) {
+               return el.word === wordArr[i];
+             });
+
+             if (found) {
+               found.weight++
+             } else {
+               var w = {
+                 word: wordArr[i],
+                 weight: 1
+               };
+               app.cloudWords.push(w);
+             }
+           }
+           function compare(a,b) {
+            if (a.weight < b.weight)
+              return -1;
+            if (a.weight > b.weight)
+              return 1;
+            return 0;
+          }
+
+          app.cloudWords.sort(compare);
+
+          for (var i = 1; i < 5; i++) {
+            app.removeByAttr(app.cloudWords, 'weight', i);
+          }
+
+           $("#wordCloud").jQWCloud({
+        		words: app.cloudWords,
+        		minFont: 10,
+        		maxFont: 36,
+        		verticalEnabled: false,
+        	});
+        }, 'text');
+      },
+      removeByAttr: function(arr, attr, value){
+          var i = arr.length;
+          while(i--){
+             if( arr[i]
+                 && arr[i].hasOwnProperty(attr)
+                 && (arguments.length > 2 && arr[i][attr] === value ) ){
+
+                 arr.splice(i,1);
+
+             }
+          }
+          return arr;
+      },
       changeSentinentTweets: function(e) {
         app.getSentinentTweets(parseInt(e));
       },
+      showAllTweets: function() {
+        app.sentinents = app.origSentinents;
+        app.userArr = app.userArrOrig;
+        app.renderChart();
+        app.$bindAsArray('users', db.ref('tweets').orderByChild('user'));
+        app.$bindAsArray('tweets', db.ref('tweets').orderByChild('user'));
+      },
+      showTweetsByUser: function(user) {
+        let foundUser = $.grep( app.userArr, function( obj, i ) {
+          return obj.name === user;
+        });
+        app.origSentinents = app.sentinents;
+        app.sentinents = foundUser[0].sentinentIDs.sort(function(a, b){return a.name>b.name});
+        app.renderChart();
+        app.$bindAsArray('users', db.ref('tweets').orderByChild('user').equalTo(user));
+        app.$bindAsArray('tweets', db.ref('tweets').orderByChild('user').equalTo(user));
+      },
+      showTweetsByWord: function(key) {
+        app.sentinents = app.origSentinents;
+        app.renderChart();
+        app.$bindAsArray('users', db.ref('tweets').orderByChild('keywords').equalTo(key));
+        app.updateUserArr(key);
+        app.$bindAsArray('tweets', db.ref('tweets').orderByChild('keywords').equalTo(key));
+      },
       getSentinentTweets: function (key) {
+        app.renderChart();
         app.$bindAsArray('tweets', db.ref('tweets').orderByChild('sentinentID').equalTo(key));
+          app.$bindAsArray('users', db.ref('tweets').orderByChild('sentinentID').equalTo(key));
       },
       renderChart: function() {
-
+        $('svg').html('');
         // set the dimensions of the canvas
-        var margin = {top: 20, right: 20, bottom: 20, left: 60},
-            width = 600 - margin.left - margin.right,
-            height = 300 - margin.top - margin.bottom;
-
+        var margin = {top: 20, right: 20, bottom: 20, left: 40},
+            width = 700 - margin.left - margin.right,
+            height = 230 - margin.top - margin.bottom;
 
         // set the ranges
-        var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
-
-        var y = d3.scale.linear().range([height, 0]);
+        var x = d3.scale.ordinal().rangeRoundBands([0, width], .05),
+            y = d3.scale.linear().range([height, 0]);
 
         // define the axis
         var xAxis = d3.svg.axis()
             .scale(x)
             .orient("bottom")
 
-
         var yAxis = d3.svg.axis()
             .scale(y)
             .orient("left")
             .ticks(10);
-
 
         // add the SVG element
         var svg = d3.select("svg")
@@ -135,65 +348,252 @@
             .attr("transform",
                   "translate(" + margin.left + "," + margin.top + ")");
 
-
         // load the data
-        d3.json("../data/sentinents.json", function(error, data) {
+        var sentinentsData = app.sentinents;
+        sentinentsData.forEach(function(d) {
+            d.name = d.name;
+            d.value = +d.value;
+        });
 
-            data.forEach(function(d) {
-                d.name = d.name;
+       // scale the range of the data
+       x.domain(sentinentsData.map(function(d) { return d.name; }));
+       y.domain([0, d3.max(sentinentsData, function(d) { return d.value; })]);
+
+       // add axis
+       svg.append("g")
+           .attr("class", "x axis")
+           .attr("transform", "translate(0," + (parseInt(height)-30) + ")")
+           .call(xAxis)
+         .append("text")
+           .attr("y", 32)
+           .attr("x", (width/2)+20)
+           .style("text-anchor", "end")
+           .style("font-size", "14px")
+           .text("Sentinent Score");
+
+       svg.append("g")
+           .attr("class", "y axis")
+           .attr("transform", "translate(0," + parseInt(-30) + ")")
+           .call(yAxis)
+         .append("text")
+           .attr("transform", "rotate(-90)")
+           .attr("y", -30)
+           .attr("x", -32)
+           .style("text-anchor", "end")
+           .style("font-size", "14px")
+           .text("Number of Tweets");
+
+         svg.selectAll(".tick")
+             .on("click", function(d) {
+               app.getSentinentTweets(d);
+             });
+
+         // Add bar chart
+         svg.selectAll("bar")
+             .data(sentinentsData)
+           .enter().append("rect")
+             .attr("class", "bar")
+             .attr("x", function(d) { return x(d.name); })
+             .attr("y", function(d) { return y(d.value)-30 ; })
+             .attr("height", function(d) { return height - y(d.value); })
+             .attr("width", x.rangeBand())
+             .on("click", function(d) {
+               app.getSentinentTweets(d.name);
+             });
+        },
+        createThemeRiver: function() {
+          fetch('data/parsedkeywords.json').then((response) => {
+            return response.json().then((json) => {
+                app.myKeywords = json;
+
+
+              app.drawThemeRiver(app.myKeywords, "blue");
+
+            })
+          });
+        },
+
+        drawThemeRiver: function(data, color) {
+
+          var datearray = [];
+          var colorrange = [];
+console.log('drawThemeRiver');
+          if (color == "blue") {
+            colorrange = ["#045A8D", "#2B8CBE", "#74A9CF", "#A6BDDB", "#D0D1E6", "#F1EEF6"];
+          }
+          else if (color == "pink") {
+            colorrange = ["#980043", "#DD1C77", "#DF65B0", "#C994C7", "#D4B9DA", "#F1EEF6"];
+          }
+          else if (color == "orange") {
+            colorrange = ["#B30000", "#E34A33", "#FC8D59", "#FDBB84", "#FDD49E", "#FEF0D9"];
+          }
+          strokecolor = colorrange[0];
+
+          var format = d3.time.format("%m/%d/%y");
+
+          var margin = {top: 20, right: 40, bottom: 30, left: 50};
+          var width = 700 - margin.left- margin.right;
+          var height = 400 - margin.top - margin.bottom;
+
+          var tooltip = d3.select(".themeriver")
+              .append("div")
+              .attr("class", "remove")
+              .style("position", "absolute")
+              .style("z-index", "20")
+              .style("visibility", "hidden")
+              .style("top", "10px")
+              .style("left", "85px");
+
+          var x = d3.time.scale()
+              .range([0, width]);
+
+          var y = d3.scale.linear()
+              .range([height-10, 0]);
+
+          var z = d3.scale.ordinal()
+              .range(colorrange);
+
+          var xAxis = d3.svg.axis()
+              .scale(x)
+              .orient("bottom")
+              .ticks(d3.time.weeks);
+
+          var yAxis = d3.svg.axis()
+              .scale(y);
+
+          var yAxisr = d3.svg.axis()
+              .scale(y);
+
+          var stack = d3.layout.stack()
+              .offset("silhouette")
+              .values(function(d) { return d.values; })
+              .x(function(d) { return d.date; })
+              .y(function(d) { return d.value; });
+
+          var nest = d3.nest()
+              .key(function(d) { return d.key; });
+
+          var area = d3.svg.area()
+              .interpolate("cardinal")
+              .x(function(d) { return x(d.date); })
+              .y0(function(d) { return y(d.y0); })
+              .y1(function(d) { return y(d.y0 + d.y); });
+
+          var svg = d3.select(".chart-theme-river").append("svg")
+              .attr("width", width + margin.left + margin.right)
+              .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+              .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+              data.forEach(function(d) {
+                d.date = format.parse(d.date);
                 d.value = +d.value;
-            });
-
-          // scale the range of the data
-          x.domain(data.map(function(d) { return d.name; }));
-          y.domain([0, d3.max(data, function(d) { return d.value; })]);
-
-          // add axis
-          svg.append("g")
-              .attr("class", "x axis")
-              .attr("transform", "translate(0," + height + ")")
-              .call(xAxis)
-            .append("text")
-              .attr("y", 32)
-              .attr("x", width)
-              .style("text-anchor", "end")
-              .style("font-size", "14px")
-              .text("Sentinent Score");
-
-          svg.append("g")
-              .attr("class", "y axis")
-              .call(yAxis)
-            .append("text")
-              .attr("transform", "rotate(-90)")
-              .attr("y", -32)
-              .style("text-anchor", "end")
-              .style("font-size", "14px")
-              .text("Number of Tweets");
-
-          svg.selectAll(".tick")
-              .on("click", function(d) {
-                app.getSentinentTweets(d);
               });
+//sort nested entries
+var nestedData = nest.entries(data)
+function compare(a,b) {
+  if (a.date < b.date)
+    return -1;
+  if (a.date > b.date)
+    return 1;
+  return 0;
+}
 
-          // Add bar chart
-          svg.selectAll("bar")
-              .data(data)
-            .enter().append("rect")
-              .attr("class", "bar")
-              .attr("x", function(d) { return x(d.name); })
-              .attr("width", x.rangeBand())
-              .attr("y", function(d) { return y(d.value); })
-              .attr("height", function(d) { return height - y(d.value); })
-              .on("click", function(d) {
-                app.getSentinentTweets(d.name);
-              });
+var sortedData = data.sort(compare);
+            var layers = stack(nest.entries(sortedData));
 
-            });
+console.log('layers',layers);
+            x.domain(d3.extent(data, function(d) { return d.date; }));
+            y.domain([0, d3.max(data, function(d) { return d.y0 + d.y; })]);
 
+            svg.selectAll(".layer")
+                .data(layers)
+              .enter().append("path")
+                .attr("class", "layer")
+                .attr("d", function(d) { console.log(d.values);
+                  return area(d.values); })
+                .style("fill", function(d, i) { return z(i); });
+
+
+            svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis);
+
+            svg.append("g")
+                .attr("class", "y axis")
+                .attr("transform", "translate(" + width + ", 0)")
+                .call(yAxis.orient("right"));
+
+            svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis.orient("left"));
+
+            svg.selectAll(".layer")
+              .attr("opacity", 1)
+              .on("mouseover", function(d, i) {
+                svg.selectAll(".layer").transition()
+                .duration(250)
+                .attr("opacity", function(d, j) {
+                  return j != i ? 0.6 : 1;
+              })})
+
+              .on("mousemove", function(d, i) {
+                mousex = d3.mouse(this);
+                mousex = mousex[0];
+                var invertedx = x.invert(mousex);
+                invertedx = invertedx.getMonth() + invertedx.getDate();
+                var selected = (d.values);
+                for (var k = 0; k < selected.length; k++) {
+                  datearray[k] = selected[k].date
+                  datearray[k] = datearray[k].getMonth() + datearray[k].getDate();
+                }
+
+                mousedate = datearray.indexOf(invertedx);
+                pro = d.values[mousedate].value;
+
+                d3.select(this)
+                .classed("hover", true)
+                .attr("stroke", strokecolor)
+                .attr("stroke-width", "0.5px"),
+                tooltip.html( "<p>" + d.key + "<br>" + pro + "</p>" ).style("visibility", "visible");
+
+              })
+              .on("mouseout", function(d, i) {
+               svg.selectAll(".layer")
+                .transition()
+                .duration(250)
+                .attr("opacity", "1");
+                d3.select(this)
+                .classed("hover", false)
+                .attr("stroke-width", "0px"), tooltip.html( "<p>" + d.key + "<br>" + pro + "</p>" ).style("visibility", "hidden");
+            })
+
+        var vertical = d3.select(".chart-theme-river")
+              .append("div")
+              .attr("class", "remove")
+              .style("position", "absolute")
+              .style("z-index", "19")
+              .style("width", "1px")
+              .style("height", "380px")
+              .style("top", "10px")
+              .style("bottom", "30px")
+              .style("left", "0px")
+              .style("background", "steelblue");
+
+        d3.select(".chart-theme-river")
+            .on("mousemove", function(){
+               mousex = d3.mouse(this);
+               mousex = mousex[0] + 5;
+               vertical.style("left", mousex + "px" )})
+            .on("mouseover", function(){
+               mousex = d3.mouse(this);
+               mousex = mousex[0] + 5;
+               vertical.style("left", mousex + "px")});
+      // });
         }
       },
       mounted: function() {
-         this.renderChart();
       },
       watch: {}
   })
