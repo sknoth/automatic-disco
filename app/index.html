@@ -12,17 +12,16 @@
     <div id="app">
       <section clas="users">
         <div>
-        <h2>Users <small>(Retweets)</small></h2>
+        <h2>User <small>(Tweets by User)</small></h2>
         <ul class="collection user-container">
           <li class="collection-item" v-for="u in userArr">
             <span class="jq-user title"
-              @click="showTweetsByUser(u.name)">{{u.name}} ({{u.sentinentIDs.length}})</span>
+              @click="showTweetsByUser(u.user,$event)">{{u.name}} ({{u.sentinentIDs.length}})<br /><small>{{u.user}}</small></span>
           </li>
         </ul>
         <ul class="collection user-container" style="display:none;">
           <li class="collection-item" v-for="u in users">
-            <span class="jq-user title" :myid="u.sentinentID" :keyword="u.keywords"
-              @click="showTweetsByUser(u.user)">{{u.user}}</span>
+            <span class="jq-user title" :uUser="u.user" :myid="u.sentinentID" :keyword="u.keywords">{{u.name}}</span>
           </li>
         </ul>
         </div>
@@ -36,6 +35,7 @@
             <li class="tab col s6"><a href="#Tkeywords">Keywords (Theme River)</a></li>
           </ul>
         </div>
+
         <div id="Tsentinents" class="col s12">
             <svg id="sentinentChart"></svg>
             <div class="select-wrapper col s6 clearfix">
@@ -46,6 +46,7 @@
               </select>
             </div>
         </div>
+
         <div id="Tkeywords" class="col s12">
           <div class="chart-theme-river themeriver"></div>
         </div>
@@ -78,6 +79,7 @@
         </div>
       </section>
       </div>
+
       <section class="keywords">
         <a class="waves-effect waves-light btn" @click="showAllTweets()">Remove Filters</a>
         <h2>Keywords</h2>
@@ -154,6 +156,7 @@
                 return obj.name === name;
               });
 
+              var uUser = $(this).attr('uUser');
               var sName = $(this).attr('myid');
               var keyword = $(this).attr('keyword');
 
@@ -172,6 +175,7 @@
               } else {
 
                 app.userArr.push({
+                  user: uUser,
                   name: $(this).html(),
                   sentinentIDs: [{name:sName, value:1}],
                   keyword: keyword
@@ -179,14 +183,14 @@
               }
             });
             function compare(a,b) {
-             if (a.sentinentIDs.length > b.sentinentIDs.length)
-               return -1;
-             if (a.sentinentIDs.length < b.sentinentIDs.length)
-               return 1;
-             return 0;
-           }
+               if (a.sentinentIDs.length > b.sentinentIDs.length)
+                 return -1;
+               if (a.sentinentIDs.length < b.sentinentIDs.length)
+                 return 1;
+               return 0;
+             }
 
-           app.userArr.sort(compare);
+            app.userArr.sort(compare);
             app.userArrOrig = app.userArr;
 
           },1000);
@@ -223,10 +227,11 @@
 
       updateUserArr: function(keyword) {
 
-            let foundKeyword = $.grep( app.userArrOrig, function( obj, i ) {
-              return obj.keyword === keyword;
-            });
-    app.userArr = foundKeyword;
+          let foundKeyword = $.grep( app.userArrOrig, function( obj, i ) {
+            return obj.keyword === keyword;
+          });
+
+          app.userArr = foundKeyword;
 
       },
 
@@ -297,12 +302,31 @@
         app.$bindAsArray('users', db.ref('tweets').orderByChild('user'));
         app.$bindAsArray('tweets', db.ref('tweets').orderByChild('user'));
       },
-      showTweetsByUser: function(user) {
+      showTweetsByUser: function(user,e) {
+        $('.jq-user').removeClass('selected');
+        $(e.target).addClass('selected');
+
         let foundUser = $.grep( app.userArr, function( obj, i ) {
-          return obj.name === user;
+          return obj.user === user;
         });
-        app.origSentinents = app.sentinents;
-        app.sentinents = foundUser[0].sentinentIDs.sort(function(a, b){return a.name>b.name});
+
+        var sents = foundUser[0].sentinentIDs.sort(function(a, b){return a.name > b.name});
+
+        var filledSents = [];
+        // fill null values
+        for (var i = -16; i < 11; i++) {
+
+          let foundS = $.grep(sents, function(sent,j) {
+            if (parseInt(sent.name) === i) {
+              filledSents.push(sent);
+              return;
+            }
+          });
+          if (foundS.length === 0) {
+            filledSents.push({name:i, value:0});
+          }
+        }
+        app.sentinents = filledSents;
         app.renderChart();
         app.$bindAsArray('users', db.ref('tweets').orderByChild('user').equalTo(user));
         app.$bindAsArray('tweets', db.ref('tweets').orderByChild('user').equalTo(user));
@@ -320,7 +344,7 @@
           app.$bindAsArray('users', db.ref('tweets').orderByChild('sentinentID').equalTo(key));
       },
       renderChart: function() {
-        $('svg').html('');
+        $('#sentinentChart').html('');
         // set the dimensions of the canvas
         var margin = {top: 20, right: 20, bottom: 20, left: 40},
             width = 700 - margin.left - margin.right,
@@ -338,10 +362,11 @@
         var yAxis = d3.svg.axis()
             .scale(y)
             .orient("left")
-            .ticks(10);
+            .ticks(10)
+            .tickFormat(d3.format("d"));
 
         // add the SVG element
-        var svg = d3.select("svg")
+        var svg = d3.select('#sentinentChart')
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
           .append("g")
@@ -349,15 +374,33 @@
                   "translate(" + margin.left + "," + margin.top + ")");
 
         // load the data
-        var sentinentsData = app.sentinents;
-        sentinentsData.forEach(function(d) {
+
+        var sents = app.sentinents,
+          filledSents = [];
+        // fill null values
+        for (var i = -16; i < 11; i++) {
+
+          let foundS = $.grep(sents, function(sent,j) {
+            if (parseInt(sent.name) === i) {
+              filledSents.push(sent);
+              return;
+            }
+          });
+          if (foundS.length === 0) {
+            filledSents.push({name:i, value:0});
+          }
+        }
+
+        app.origSentinents = filledSents;
+
+        filledSents.forEach(function(d) {
             d.name = d.name;
             d.value = +d.value;
         });
 
        // scale the range of the data
-       x.domain(sentinentsData.map(function(d) { return d.name; }));
-       y.domain([0, d3.max(sentinentsData, function(d) { return d.value; })]);
+       x.domain(filledSents.map(function(d) { return d.name; }));
+       y.domain([0, d3.max(filledSents, function(d) { return d.value; })]);
 
        // add axis
        svg.append("g")
@@ -390,7 +433,7 @@
 
          // Add bar chart
          svg.selectAll("bar")
-             .data(sentinentsData)
+             .data(filledSents)
            .enter().append("rect")
              .attr("class", "bar")
              .attr("x", function(d) { return x(d.name); })
@@ -414,7 +457,7 @@
         },
 
         drawThemeRiver: function(data, color) {
-
+          $(".chart-theme-river").html('');
           var datearray = [];
           var colorrange = [];
 console.log('drawThemeRiver');
@@ -502,7 +545,7 @@ function compare(a,b) {
 var sortedData = data.sort(compare);
             var layers = stack(nest.entries(sortedData));
 
-console.log('layers',layers);
+// console.log('layers',layers);
             x.domain(d3.extent(data, function(d) { return d.date; }));
             y.domain([0, d3.max(data, function(d) { return d.y0 + d.y; })]);
 
@@ -510,7 +553,7 @@ console.log('layers',layers);
                 .data(layers)
               .enter().append("path")
                 .attr("class", "layer")
-                .attr("d", function(d) { console.log(d.values);
+                .attr("d", function(d) {
                   return area(d.values); })
                 .style("fill", function(d, i) { return z(i); });
 
@@ -549,8 +592,8 @@ console.log('layers',layers);
                   datearray[k] = datearray[k].getMonth() + datearray[k].getDate();
                 }
 
-                mousedate = datearray.indexOf(invertedx);
-                pro = d.values[mousedate].value;
+                var mousedate = datearray.indexOf(invertedx);
+                var pro = d.values[mousedate].value;
 
                 d3.select(this)
                 .classed("hover", true)

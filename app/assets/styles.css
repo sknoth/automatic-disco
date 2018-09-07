@@ -169,3 +169,14 @@ th.active .arrow {
   right: 50px;
   top: 10px;
 }
+
+.user-container.collection .collection-item {
+  padding: 0;
+}
+.user-container.collection .collection-item span {
+  padding: 10px 20px;
+  display: block;
+}
+.user-container.collection .collection-item span.selected {
+  background-color: #94cdfe;
+}

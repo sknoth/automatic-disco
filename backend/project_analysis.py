@@ -12,12 +12,12 @@ import gensim
 import gensim.corpora as corpora
 from gensim.utils import simple_preprocess
 from nltk.corpus import stopwords
-stop_words = stopwords.words('swedish')
 
-workbook = xlrd.open_workbook('F:/Software Technology/Semester 3/Adaptive and Semantic Web/Final Project/diabetes_august_2017.xlsx')
+stop_words = stopwords.words('swedish')
+workbook = xlrd.open_workbook('data/diabetes_august_2017.xlsx')
 sheet = workbook.sheet_by_index(0)
 
-tweet_list=[]
+tweet_list = []
 for row in range(5, sheet.nrows-68):
     tweet_list.append(sheet.row(row)[5].value)
 
@@ -42,11 +42,13 @@ def remove_punctuations(tweet):
                 finalText.append(word)
     return ' '.join(finalText)
 
-cleaned_list=[]
+cleaned_list = []
 for tweet in tweet_list:
     cleaned_list.append(remove_punctuations(remove_links(tweet)))
+
 def remove_stopwords(texts):
     return [[word for word in simple_preprocess(str(doc)) if word not in stop_words] for doc in texts]
+
 data_words_nostops = remove_stopwords(cleaned_list)
 
 wrdCloud=''
@@ -58,6 +60,7 @@ texts=""
 for row in data_words_nostops:
     texts+=','
     texts+= ','.join(row)
+
 # spacy for lemmatization
 from spacy.lang.sv import Swedish
 nlp = Swedish()
@@ -71,7 +74,7 @@ for wrd in doc_lemmatized:
 #    words = " ".join(re.findall("[a-z\såäö]+", line[1]))
 #    topic_words.append(words.split())
 
-#RQ2 implementation start here     
+#RQ2 implementation start here
 retweeted=[]
 for row in tweet_list:
     if row.startswith('RT'):
@@ -82,7 +85,7 @@ createFile.close()
 #import json
 #with open('F:/Software Technology/Semester 4/Topic Results/Final Results/ReTweeted_Tweets.json', 'w') as tfile:
 #    json.dump(retweeted, tfile)
-#282 are retweeted 
+#282 are retweeted
 import collections
 values=[item for item, count in collections.Counter(retweeted).items() if count >=1] #count 1 will show the entries which tweeted once, 2 mean two time, upto so on. We have to chage it manually
 
@@ -107,7 +110,7 @@ values=[item for item, count in collections.Counter(retweeted).items() if count 
 #.....
 #103 tweets, 1 time
 
-#RQ3 implementation start here 
+#RQ3 implementation start here
 linkedTweets=[]
 links=[]
 for row in tweet_list:
@@ -121,8 +124,3 @@ createFile.close()
 #572 links total
 #check duplicate links
 linksdupli=[item for item, count in collections.Counter(linkedTweets).items() if count ==2] #count 3, 4 upto so on
-
-
-
-
-
